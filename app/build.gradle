@@ -1,16 +1,11 @@
-plugins {
-    id "com.android.application"
-    id "org.jetbrains.kotlin.android"
-}
-
 android {
     namespace "com.example.bama"
-    compileSdk 37
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.example.bama"
         minSdk 26
-        targetSdk 35
+        targetSdk 36
         versionCode 1
         versionName "1.0"
     }
