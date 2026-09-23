@@ -1,49 +1,274 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F7FA">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="12dp"
+        android:background="#1565C0">
+
+        <Button
+            android:id="@+id/menuButton"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:text="☰"
+            android:textSize="25sp"
+            android:textColor="#FFFFFF"
+            android:background="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp" />
 
         <TextView
-            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="BAMA Attendance"
+            android:textColor="#FFFFFF"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp" />
+
+    </LinearLayout>
+
+
+    <!-- ===================================================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ===================================================== -->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No attendance recorded today."
-            android:textSize="20sp"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Today's Attendance -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TODAY'S ATTENDANCE"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#263238"
+                android:gravity="center"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/dateText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Today"
+                android:textSize="15sp"
+                android:textColor="#607D8B"
+                android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="18dp" />
+
+
+            <!-- ================================================= -->
+            <!-- MORNING CARD -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:background="#FFFFFF"
+                android:elevation="3dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🌅  MORNING"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#1565C0" />
+
+                <TextView
+                    android:id="@+id/morningStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Not marked"
+                    android:textSize="18sp"
+                    android:textColor="#263238"
+                    android:layout_marginTop="10dp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- EVENING CARD -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:background="#FFFFFF"
+                android:elevation="3dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🌙  EVENING"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#4527A0" />
+
+                <TextView
+                    android:id="@+id/eveningStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Not marked"
+                    android:textSize="18sp"
+                    android:textColor="#263238"
+                    android:layout_marginTop="10dp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- 7 HOUR STATUS -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:background="#E3F2FD"
+                android:elevation="2dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⏱  7-HOUR STATUS"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#1565C0" />
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="No attendance recorded today."
+                    android:textSize="17sp"
+                    android:textColor="#263238"
+                    android:layout_marginTop="10dp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- MORNING BUTTON -->
+            <!-- ================================================= -->
+
+            <Button
+                android:id="@+id/morningButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="MARK MORNING"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1565C0"
+                android:layout_marginBottom="12dp" />
+
+
+            <!-- ================================================= -->
+            <!-- EVENING BUTTON -->
+            <!-- ================================================= -->
+
+            <Button
+                android:id="@+id/eveningButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="MARK EVENING"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#4527A0"
+                android:layout_marginBottom="12dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <!-- ===================================================== -->
+    <!-- FOOTER -->
+    <!-- ===================================================== -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#FFFFFF"
+        android:elevation="8dp">
 
         <Button
-            android:id="@+id/morningButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="MORNING"
-            android:layout_marginBottom="10dp" />
-
-        <Button
-            android:id="@+id/eveningButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="EVENING"
-            android:layout_marginBottom="10dp" />
+            android:id="@+id/homeButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="⌂\nHome"
+            android:textSize="13sp"
+            android:textColor="#1565C0"
+            android:background="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp" />
 
         <Button
             android:id="@+id/historyButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="HISTORY - LAST 45 DAYS"
-            android:layout_marginBottom="10dp" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="▣\nHistory"
+            android:textSize="13sp"
+            android:textColor="#455A64"
+            android:background="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp" />
 
         <Button
-            android:id="@+id/clearButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="CLEAR TODAY" />
+            android:id="@+id/menuBottomButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="☰\nMenu"
+            android:textSize="13sp"
+            android:textColor="#455A64"
+            android:background="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp" />
 
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>
