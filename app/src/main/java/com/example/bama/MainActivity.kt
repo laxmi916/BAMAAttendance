@@ -8,6 +8,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,6 +18,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.widget.Button
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import java.text.SimpleDateFormat
@@ -252,54 +254,124 @@ class MainActivity : android.app.Activity() {
     }
 
     private fun showHistory() {
+
         val history = StringBuilder()
 
         for (i in 0 until 45) {
+
             val date = dateDaysAgo(i)
-            val morning = prefs.getLong(MORNING_PREFIX + date, 0L)
-            val evening = prefs.getLong(EVENING_PREFIX + date, 0L)
 
-            history.append(date).append("\n")
+            val morning =
+                prefs.getLong(
+                    MORNING_PREFIX + date,
+                    0L
+                )
 
-            when {
-                morning == 0L -> {
-                    history.append("Not attended\n")
-                }
+            val evening =
+                prefs.getLong(
+                    EVENING_PREFIX + date,
+                    0L
+                )
 
-                evening == 0L -> {
-                    history.append("Morning : ${formatTime(morning)}\n")
-                    history.append("Evening : Not marked\n")
-                    history.append("Status : Incomplete\n")
-                }
 
-                else -> {
-                    val duration = max(0L, evening - morning)
-                    history.append("Morning : ${formatTime(morning)}\n")
-                    history.append("Evening : ${formatTime(evening)}\n")
-                    history.append("Total : ${formatDuration(duration)}\n")
+            history.append(date)
+                .append("\n")
+
+
+            if (morning == 0L) {
+
+                history.append(
+                    "Not attended\n"
+                )
+
+            } else {
+
+                history.append(
+                    "Morning : " +
+                            formatTime(morning) +
+                            "\n"
+                )
+
+
+                if (evening == 0L) {
+
+                    history.append(
+                        "Evening : Not marked\n"
+                    )
+
+                    history.append(
+                        "Status : Incomplete\n"
+                    )
+
+                } else {
+
+                    val duration =
+                        max(
+                            0L,
+                            evening - morning
+                        )
+
+
+                    history.append(
+                        "Evening : " +
+                                formatTime(evening) +
+                                "\n"
+                    )
+
+
+                    history.append(
+                        "Total : " +
+                                formatDuration(duration) +
+                                "\n"
+                    )
+
+
                     history.append(
                         "Status : " +
                                 if (duration >= SEVEN_HOURS)
                                     "7 hours completed"
                                 else
-                                    "Less than 7 hours"
-                    ).append("\n")
+                                    "Less than 7 hours" +
+                                "\n"
+                    )
                 }
             }
+
 
             history.append("\n")
         }
 
-        val scroll = ScrollView(this)
-        val view = TextView(this)
-        view.text = history.toString()
-        view.textSize = 16f
-        view.setPadding(20, 10, 20, 10)
-        scroll.addView(view)
+
+        val scrollView =
+            ScrollView(this)
+
+
+        val textView =
+            TextView(this)
+
+
+        textView.text =
+            history.toString()
+
+        textView.textSize =
+            16f
+
+        textView.setPadding(
+            20,
+            20,
+            20,
+            20
+        )
+
+
+        scrollView.addView(
+            textView
+        )
+
 
         AlertDialog.Builder(this)
             .setTitle("Last 45 Days")
-            .setView(scroll)
+            .setView(scrollView)
             .setPositiveButton("OK", null)
             .show()
     }
