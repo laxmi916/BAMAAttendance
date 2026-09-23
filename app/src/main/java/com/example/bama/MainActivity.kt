@@ -28,21 +28,22 @@ import java.util.Locale
 import kotlin.math.max
 
 
-class MainActivity : Activity() {
+class MainActivity : android.app.Activity() {
 
     companion object {
 
         const val PREFS = "attendance"
 
         const val MORNING_PREFIX = "morning_"
+
         const val EVENING_PREFIX = "evening_"
 
         const val CHANNEL_ID = "attendance_channel"
+
         const val NOTIFICATION_ID = 7
 
         const val ALARM_REQUEST_CODE = 100
 
-        // 7 hours
         const val SEVEN_HOURS =
             7L * 60L * 60L * 1000L
     }
@@ -53,11 +54,6 @@ class MainActivity : Activity() {
     // =========================================================
 
     private lateinit var statusText: TextView
-
-    private lateinit var morningButton: Button
-    private lateinit var eveningButton: Button
-    private lateinit var historyButton: Button
-    private lateinit var clearButton: Button
 
 
     // =========================================================
@@ -74,7 +70,7 @@ class MainActivity : Activity() {
 
 
     // =========================================================
-    // DATE AND TIME FORMAT
+    // DATE / TIME FORMAT
     // =========================================================
 
     private val dateFormat =
@@ -82,6 +78,7 @@ class MainActivity : Activity() {
             "yyyy-MM-dd",
             Locale.getDefault()
         )
+
 
     private val timeFormat =
         SimpleDateFormat(
@@ -98,7 +95,7 @@ class MainActivity : Activity() {
         Handler(Looper.getMainLooper())
 
 
-    private val statusUpdater =
+    private val updater =
         object : Runnable {
 
             override fun run() {
@@ -132,7 +129,7 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Find views
+        // Status
         // -----------------------------------------------------
 
         statusText =
@@ -141,53 +138,37 @@ class MainActivity : Activity() {
             )
 
 
-        morningButton =
-            findViewById(
-                R.id.morningButton
-            )
-
-
-        eveningButton =
-            findViewById(
-                R.id.eveningButton
-            )
-
-
-        historyButton =
-            findViewById(
-                R.id.historyButton
-            )
-
-
-        clearButton =
-            findViewById(
-                R.id.clearButton
-            )
-
-
         // -----------------------------------------------------
-        // Button clicks
+        // Buttons
         // -----------------------------------------------------
 
-        morningButton.setOnClickListener {
+        findViewById<Button>(
+            R.id.morningButton
+        ).setOnClickListener {
 
             markMorning()
         }
 
 
-        eveningButton.setOnClickListener {
+        findViewById<Button>(
+            R.id.eveningButton
+        ).setOnClickListener {
 
             markEvening()
         }
 
 
-        historyButton.setOnClickListener {
+        findViewById<Button>(
+            R.id.historyButton
+        ).setOnClickListener {
 
             showHistory()
         }
 
 
-        clearButton.setOnClickListener {
+        findViewById<Button>(
+            R.id.clearButton
+        ).setOnClickListener {
 
             clearToday()
         }
@@ -203,7 +184,7 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Display today's status
+        // Current status
         // -----------------------------------------------------
 
         updateStatus()
@@ -221,15 +202,10 @@ class MainActivity : Activity() {
 
         updateStatus()
 
-
-        // Re-create alarm if today's Morning exists
-        // and seven hours have not yet completed.
-
-        scheduleSavedMorningAlarm()
-
+        scheduleSavedAlarm()
 
         handler.post(
-            statusUpdater
+            updater
         )
     }
 
@@ -243,31 +219,43 @@ class MainActivity : Activity() {
         super.onPause()
 
         handler.removeCallbacks(
-            statusUpdater
+            updater
         )
     }
 
 
     // =========================================================
-    // GET DATE
+    // TODAY
     // =========================================================
 
-    private fun dateString(
-        daysAgo: Int = 0
+    private fun today(): String {
+
+        return dateFormat.format(
+            Date()
+        )
+    }
+
+
+    // =========================================================
+    // DATE N DAYS AGO
+    // =========================================================
+
+    private fun dateDaysAgo(
+        daysAgo: Int
     ): String {
 
-        val calendar =
+        val cal =
             Calendar.getInstance()
 
 
-        calendar.add(
+        cal.add(
             Calendar.DAY_OF_YEAR,
             -daysAgo
         )
 
 
         return dateFormat.format(
-            calendar.time
+            cal.time
         )
     }
 
@@ -277,11 +265,11 @@ class MainActivity : Activity() {
     // =========================================================
 
     private fun formatTime(
-        milliseconds: Long
+        time: Long
     ): String {
 
         return timeFormat.format(
-            Date(milliseconds)
+            Date(time)
         )
     }
 
@@ -294,14 +282,11 @@ class MainActivity : Activity() {
         milliseconds: Long
     ): String {
 
-        if (milliseconds <= 0L) {
-
-            return "00:00:00"
-        }
-
-
         val totalSeconds =
-            milliseconds / 1000L
+            max(
+                0L,
+                milliseconds
+            ) / 1000L
 
 
         val hours =
@@ -327,78 +312,50 @@ class MainActivity : Activity() {
 
 
     // =========================================================
-    // CHECK MORNING TIME
+    // MORNING TIME VALIDATION
     // =========================================================
 
-    private fun morningTimeAllowed(): Boolean {
+    private fun morningAllowed(): Boolean {
 
-        val calendar =
+        val cal =
             Calendar.getInstance()
 
 
-        val hour =
-            calendar.get(
+        val minutes =
+            cal.get(
                 Calendar.HOUR_OF_DAY
-            )
+            ) * 60 +
+                    cal.get(
+                        Calendar.MINUTE
+                    )
 
 
-        val minute =
-            calendar.get(
-                Calendar.MINUTE
-            )
-
-
-        val currentMinutes =
-            hour * 60 + minute
-
-
-        val start =
-            8 * 60 + 15
-
-
-        val end =
-            13 * 60 + 45
-
-
-        return currentMinutes in start..end
+        return minutes in
+                (8 * 60 + 15)..(13 * 60 + 45)
     }
 
 
     // =========================================================
-    // CHECK EVENING TIME
+    // EVENING TIME VALIDATION
     // =========================================================
 
-    private fun eveningTimeAllowed(): Boolean {
+    private fun eveningAllowed(): Boolean {
 
-        val calendar =
+        val cal =
             Calendar.getInstance()
 
 
-        val hour =
-            calendar.get(
+        val minutes =
+            cal.get(
                 Calendar.HOUR_OF_DAY
-            )
+            ) * 60 +
+                    cal.get(
+                        Calendar.MINUTE
+                    )
 
 
-        val minute =
-            calendar.get(
-                Calendar.MINUTE
-            )
-
-
-        val currentMinutes =
-            hour * 60 + minute
-
-
-        val start =
-            12 * 60 + 15
-
-
-        val end =
-            17 * 60 + 45
-
-
-        return currentMinutes in start..end
+        return minutes in
+                (12 * 60 + 15)..(17 * 60 + 45)
     }
 
 
@@ -409,17 +366,25 @@ class MainActivity : Activity() {
     private fun markMorning() {
 
         val date =
-            dateString()
+            today()
+
+
+        val morningKey =
+            MORNING_PREFIX + date
+
+
+        val eveningKey =
+            EVENING_PREFIX + date
 
 
         // -----------------------------------------------------
-        // Check valid Morning time
+        // Check time
         // -----------------------------------------------------
 
-        if (!morningTimeAllowed()) {
+        if (!morningAllowed()) {
 
             toast(
-                "Morning time must be between 08:15 and 13:45."
+                "Morning time must be between 08:15 and 13:45"
             )
 
             return
@@ -427,20 +392,31 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Don't allow duplicate Morning
+        // Already marked
         // -----------------------------------------------------
 
-        val existingMorning =
-            prefs.getLong(
-                MORNING_PREFIX + date,
-                0L
-            )
-
-
-        if (existingMorning != 0L) {
+        if (prefs.contains(morningKey)) {
 
             toast(
-                "Morning already marked today."
+                "Morning already marked today"
+            )
+
+            return
+        }
+
+
+        /*
+         * If Evening was already recorded without Morning,
+         * do not create a new Morning time automatically.
+         *
+         * Otherwise it could produce a false working duration.
+         */
+
+        if (prefs.contains(eveningKey)) {
+
+            toast(
+                "Evening is already marked. " +
+                        "Morning time cannot be added automatically."
             )
 
             return
@@ -448,7 +424,7 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Save current time
+        // Record current time
         // -----------------------------------------------------
 
         val morning =
@@ -458,7 +434,7 @@ class MainActivity : Activity() {
         prefs.edit()
 
             .putLong(
-                MORNING_PREFIX + date,
+                morningKey,
                 morning
             )
 
@@ -475,24 +451,20 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Display
+        // Show completion time
         // -----------------------------------------------------
 
-        val completeTime =
-            morning + SEVEN_HOURS
+        toast(
 
-
-        showMessage(
-
-            "Morning Marked",
-
-            "Morning : " +
+            "Morning marked at " +
                     formatTime(morning) +
 
-                    "\n\n" +
+                    "\n" +
 
-                    "7 Hours Complete At : " +
-                    formatTime(completeTime)
+                    "7 hours complete at " +
+                    formatTime(
+                        morning + SEVEN_HOURS
+                    )
         )
 
 
@@ -507,17 +479,21 @@ class MainActivity : Activity() {
     private fun markEvening() {
 
         val date =
-            dateString()
+            today()
+
+
+        val eveningKey =
+            EVENING_PREFIX + date
 
 
         // -----------------------------------------------------
-        // Check valid evening time
+        // Check time
         // -----------------------------------------------------
 
-        if (!eveningTimeAllowed()) {
+        if (!eveningAllowed()) {
 
             toast(
-                "Evening time must be between 12:15 and 17:45."
+                "Evening time must be between 12:15 and 17:45"
             )
 
             return
@@ -525,20 +501,13 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Don't allow duplicate Evening
+        // Already marked
         // -----------------------------------------------------
 
-        val existingEvening =
-            prefs.getLong(
-                EVENING_PREFIX + date,
-                0L
-            )
-
-
-        if (existingEvening != 0L) {
+        if (prefs.contains(eveningKey)) {
 
             toast(
-                "Evening already marked today."
+                "Evening already marked today"
             )
 
             return
@@ -546,7 +515,10 @@ class MainActivity : Activity() {
 
 
         // -----------------------------------------------------
-        // Save current evening time
+        // Record Evening FIRST
+        //
+        // This is important:
+        // Evening is allowed even if Morning is missing.
         // -----------------------------------------------------
 
         val evening =
@@ -556,7 +528,7 @@ class MainActivity : Activity() {
         prefs.edit()
 
             .putLong(
-                EVENING_PREFIX + date,
+                eveningKey,
                 evening
             )
 
@@ -575,16 +547,12 @@ class MainActivity : Activity() {
 
 
         // =====================================================
-        // CASE 1:
-        // Morning exists
+        // CASE 1: Morning exists
         // =====================================================
 
         if (morning != 0L) {
 
-
-            // Cancel 7-hour alarm because Evening
-            // attendance has now been recorded.
-
+            // Stop 7-hour notification
             cancelAlarm()
 
 
@@ -607,7 +575,7 @@ class MainActivity : Activity() {
 
                         "\n\n" +
 
-                        "Total Time : " +
+                        "Total : " +
                         formatDuration(duration) +
 
                         "\n\n" +
@@ -618,11 +586,13 @@ class MainActivity : Activity() {
 
                         } else {
 
-                            "7 hours not completed." +
-                                    "\n\n" +
+                            "7 hours not completed.\n\n" +
+
                                     "Remaining : " +
+
                                     formatDuration(
-                                        SEVEN_HOURS - duration
+                                        SEVEN_HOURS -
+                                                duration
                                     )
                         }
 
@@ -635,8 +605,7 @@ class MainActivity : Activity() {
 
 
         // =====================================================
-        // CASE 2:
-        // Morning was NOT marked in the app
+        // CASE 2: Morning missing
         // =====================================================
 
         else {
@@ -650,12 +619,11 @@ class MainActivity : Activity() {
 
                         "\n\n" +
 
-                        "Morning was not recorded " +
-                        "in the app." +
+                        "Morning : Not recorded" +
 
                         "\n\n" +
 
-                        "Status : Morning Missing" +
+                        "Status : Morning missing" +
 
                         "\n\n" +
 
@@ -670,13 +638,13 @@ class MainActivity : Activity() {
 
 
     // =========================================================
-    // UPDATE MAIN SCREEN
+    // UPDATE TODAY'S STATUS
     // =========================================================
 
     private fun updateStatus() {
 
         val date =
-            dateString()
+            today()
 
 
         val morning =
@@ -694,7 +662,7 @@ class MainActivity : Activity() {
 
 
         // =====================================================
-        // NO MORNING + NO EVENING
+        // NOTHING RECORDED
         // =====================================================
 
         if (morning == 0L &&
@@ -708,7 +676,7 @@ class MainActivity : Activity() {
 
 
         // =====================================================
-        // EVENING EXISTS, MORNING MISSING
+        // EVENING ONLY
         // =====================================================
 
         if (morning == 0L &&
@@ -725,7 +693,7 @@ class MainActivity : Activity() {
 
                         "\n\n" +
 
-                        "Status : Morning Missing" +
+                        "Status : Morning missing" +
 
                         "\n\n" +
 
@@ -736,63 +704,59 @@ class MainActivity : Activity() {
 
 
         // =====================================================
-        // MORNING EXISTS, EVENING MISSING
+        // MORNING ONLY
         // =====================================================
 
         if (morning != 0L &&
             evening == 0L) {
 
 
-            val now =
-                System.currentTimeMillis()
-
-
             val elapsed =
                 max(
                     0L,
-                    now - morning
+                    System.currentTimeMillis() -
+                            morning
                 )
 
 
             val remaining =
-                SEVEN_HOURS - elapsed
+                SEVEN_HOURS -
+                        elapsed
 
 
-            if (remaining > 0L) {
+            statusText.text =
 
-                statusText.text =
+                "Morning : " +
+                        formatTime(morning) +
 
-                    "Morning : " +
-                            formatTime(morning) +
+                        "\n\n" +
 
-                            "\n\n" +
+                        if (remaining > 0L) {
 
                             "Elapsed : " +
-                            formatDuration(elapsed) +
+                                    formatDuration(
+                                        elapsed
+                                    ) +
 
-                            "\n\n" +
+                                    "\n\n" +
 
-                            "Remaining : " +
-                            formatDuration(remaining) +
+                                    "Remaining : " +
+                                    formatDuration(
+                                        remaining
+                                    ) +
 
-                            "\n\n" +
+                                    "\n\n" +
 
-                            "Complete at : " +
-                            formatTime(
-                                morning + SEVEN_HOURS
-                            )
+                                    "Complete at : " +
+                                    formatTime(
+                                        morning +
+                                                SEVEN_HOURS
+                                    )
 
-            } else {
-
-                statusText.text =
-
-                    "Morning : " +
-                            formatTime(morning) +
-
-                            "\n\n" +
+                        } else {
 
                             "7 HOURS COMPLETED"
-            }
+                        }
 
 
             return
@@ -800,7 +764,7 @@ class MainActivity : Activity() {
 
 
         // =====================================================
-        // MORNING + EVENING EXIST
+        // MORNING + EVENING
         // =====================================================
 
         val duration =
@@ -810,242 +774,45 @@ class MainActivity : Activity() {
             )
 
 
-        if (duration >= SEVEN_HOURS) {
+        statusText.text =
 
-            statusText.text =
+            "Morning : " +
+                    formatTime(morning) +
 
-                "Morning : " +
-                        formatTime(morning) +
+                    "\n\n" +
 
-                        "\n\n" +
+                    "Evening : " +
+                    formatTime(evening) +
 
-                        "Evening : " +
-                        formatTime(evening) +
+                    "\n\n" +
 
-                        "\n\n" +
+                    "Total : " +
+                    formatDuration(
+                        duration
+                    ) +
 
-                        "Total : " +
-                        formatDuration(duration) +
+                    "\n\n" +
 
-                        "\n\n" +
+                    if (duration >= SEVEN_HOURS) {
 
                         "7 HOURS COMPLETED"
 
-        } else {
+                    } else {
 
-            statusText.text =
+                        "7 Hours NOT completed\n\n" +
 
-                "Morning : " +
-                        formatTime(morning) +
+                                "Remaining : " +
 
-                        "\n\n" +
-
-                        "Evening : " +
-                        formatTime(evening) +
-
-                        "\n\n" +
-
-                        "Total : " +
-                        formatDuration(duration) +
-
-                        "\n\n" +
-
-                        "7 Hours NOT completed" +
-
-                        "\n\n" +
-
-                        "Remaining : " +
-                        formatDuration(
-                            SEVEN_HOURS - duration
-                        )
-        }
+                                formatDuration(
+                                    SEVEN_HOURS -
+                                            duration
+                                )
+                    }
     }
 
 
     // =========================================================
-    // SCHEDULE ALARM
-    // =========================================================
-
-    private fun scheduleAlarm(
-        morning: Long
-    ) {
-
-        val alarmManager =
-            getSystemService(
-                Context.ALARM_SERVICE
-            ) as AlarmManager
-
-
-        val intent =
-            Intent(
-                this,
-                AlarmReceiver::class.java
-            )
-
-
-        val pendingIntent =
-            PendingIntent.getBroadcast(
-
-                this,
-
-                ALARM_REQUEST_CODE,
-
-                intent,
-
-                PendingIntent.FLAG_UPDATE_CURRENT or
-                        PendingIntent.FLAG_IMMUTABLE
-            )
-
-
-        val triggerTime =
-            morning + SEVEN_HOURS
-
-
-        // -----------------------------------------------------
-        // Android 12+
-        // -----------------------------------------------------
-
-        if (Build.VERSION.SDK_INT >= 31) {
-
-            if (!alarmManager.canScheduleExactAlarms()) {
-
-                try {
-
-                    startActivity(
-                        Intent(
-                            Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                        )
-                    )
-
-                } catch (e: Exception) {
-
-                    // If exact-alarm settings cannot be opened,
-                    // use an inexact alarm instead.
-
-                    alarmManager.setAndAllowWhileIdle(
-
-                        AlarmManager.RTC_WAKEUP,
-
-                        triggerTime,
-
-                        pendingIntent
-                    )
-                }
-
-                return
-            }
-        }
-
-
-        // -----------------------------------------------------
-        // Exact alarm
-        // -----------------------------------------------------
-
-        if (Build.VERSION.SDK_INT >= 23) {
-
-            alarmManager.setExactAndAllowWhileIdle(
-
-                AlarmManager.RTC_WAKEUP,
-
-                triggerTime,
-
-                pendingIntent
-            )
-
-        } else {
-
-            alarmManager.setExact(
-
-                AlarmManager.RTC_WAKEUP,
-
-                triggerTime,
-
-                pendingIntent
-            )
-        }
-    }
-
-
-    // =========================================================
-    // RE-SCHEDULE SAVED MORNING ALARM
-    // =========================================================
-
-    private fun scheduleSavedMorningAlarm() {
-
-        val date =
-            dateString()
-
-
-        val morning =
-            prefs.getLong(
-                MORNING_PREFIX + date,
-                0L
-            )
-
-
-        if (morning == 0L) {
-            return
-        }
-
-
-        val completeTime =
-            morning + SEVEN_HOURS
-
-
-        if (System.currentTimeMillis() >=
-            completeTime) {
-
-            return
-        }
-
-
-        scheduleAlarm(
-            morning
-        )
-    }
-
-
-    // =========================================================
-    // CANCEL ALARM
-    // =========================================================
-
-    private fun cancelAlarm() {
-
-        val alarmManager =
-            getSystemService(
-                Context.ALARM_SERVICE
-            ) as AlarmManager
-
-
-        val intent =
-            Intent(
-                this,
-                AlarmReceiver::class.java
-            )
-
-
-        val pendingIntent =
-            PendingIntent.getBroadcast(
-
-                this,
-
-                ALARM_REQUEST_CODE,
-
-                intent,
-
-                PendingIntent.FLAG_UPDATE_CURRENT or
-                        PendingIntent.FLAG_IMMUTABLE
-            )
-
-
-        alarmManager.cancel(
-            pendingIntent
-        )
-    }
-
-
-    // =========================================================
-    // HISTORY - LAST 45 DAYS
+    // SHOW 45-DAY HISTORY
     // =========================================================
 
     private fun showHistory() {
@@ -1054,10 +821,14 @@ class MainActivity : Activity() {
             StringBuilder()
 
 
+        // -----------------------------------------------------
+        // 45 calendar days including today
+        // -----------------------------------------------------
+
         for (i in 0 until 45) {
 
             val date =
-                dateString(i)
+                dateDaysAgo(i)
 
 
             val morning =
@@ -1076,31 +847,25 @@ class MainActivity : Activity() {
 
             history.append(
                 date
-            )
+            ).append("\n")
 
 
-            history.append(
-                "\n"
-            )
-
-
-            // -------------------------------------------------
-            // No attendance
-            // -------------------------------------------------
+            // =================================================
+            // NO ATTENDANCE
+            // =================================================
 
             if (morning == 0L &&
                 evening == 0L) {
 
                 history.append(
-                    "Status : Not attended"
+                    "Status : Not attended\n"
                 )
-
             }
 
 
-            // -------------------------------------------------
-            // Evening only
-            // -------------------------------------------------
+            // =================================================
+            // EVENING ONLY
+            // =================================================
 
             else if (morning == 0L &&
                      evening != 0L) {
@@ -1109,44 +874,52 @@ class MainActivity : Activity() {
                     "Morning : Not recorded\n"
                 )
 
+
                 history.append(
                     "Evening : " +
-                            formatTime(evening) +
+                            formatTime(
+                                evening
+                            ) +
                             "\n"
                 )
 
+
                 history.append(
-                    "Status : Morning missing"
+                    "Status : Morning missing\n"
                 )
             }
 
 
-            // -------------------------------------------------
-            // Morning only
-            // -------------------------------------------------
+            // =================================================
+            // MORNING ONLY
+            // =================================================
 
             else if (morning != 0L &&
                      evening == 0L) {
 
                 history.append(
                     "Morning : " +
-                            formatTime(morning) +
+                            formatTime(
+                                morning
+                            ) +
                             "\n"
                 )
+
 
                 history.append(
                     "Evening : Not marked\n"
                 )
 
+
                 history.append(
-                    "Status : Incomplete"
+                    "Status : Incomplete\n"
                 )
             }
 
 
-            // -------------------------------------------------
-            // Morning + Evening
-            // -------------------------------------------------
+            // =================================================
+            // MORNING + EVENING
+            // =================================================
 
             else {
 
@@ -1159,14 +932,18 @@ class MainActivity : Activity() {
 
                 history.append(
                     "Morning : " +
-                            formatTime(morning) +
+                            formatTime(
+                                morning
+                            ) +
                             "\n"
                 )
 
 
                 history.append(
                     "Evening : " +
-                            formatTime(evening) +
+                            formatTime(
+                                evening
+                            ) +
                             "\n"
                 )
 
@@ -1182,20 +959,26 @@ class MainActivity : Activity() {
 
                 history.append(
                     "Status : " +
-                            if (duration >= SEVEN_HOURS) {
+
+                            if (
+                                duration >=
+                                SEVEN_HOURS
+                            ) {
 
                                 "7 hours completed"
 
                             } else {
 
                                 "Less than 7 hours"
-                            }
+                            } +
+
+                            "\n"
                 )
             }
 
 
             history.append(
-                "\n\n"
+                "\n"
             )
         }
 
@@ -1259,7 +1042,7 @@ class MainActivity : Activity() {
     private fun clearToday() {
 
         val date =
-            dateString()
+            today()
 
 
         val morning =
@@ -1276,23 +1059,31 @@ class MainActivity : Activity() {
             )
 
 
+        // -----------------------------------------------------
+        // Nothing to clear
+        // -----------------------------------------------------
+
         if (morning == 0L &&
             evening == 0L) {
 
             toast(
-                "No attendance recorded today."
+                "No attendance recorded today"
             )
 
             return
         }
 
 
-        // Cancel today's alarm
+        // -----------------------------------------------------
+        // Cancel alarm
+        // -----------------------------------------------------
 
         cancelAlarm()
 
 
+        // -----------------------------------------------------
         // Remove today's records
+        // -----------------------------------------------------
 
         prefs.edit()
 
@@ -1311,13 +1102,205 @@ class MainActivity : Activity() {
 
 
         toast(
-            "Today's attendance cleared."
+            "Today's attendance cleared"
         )
     }
 
 
     // =========================================================
-    // NOTIFICATION CHANNEL
+    // RE-SCHEDULE SAVED MORNING ALARM
+    // =========================================================
+
+    private fun scheduleSavedAlarm() {
+
+        val date =
+            today()
+
+
+        val morning =
+            prefs.getLong(
+                MORNING_PREFIX + date,
+                0L
+            )
+
+
+        if (morning == 0L) {
+            return
+        }
+
+
+        // Evening already recorded
+        if (
+            prefs.contains(
+                EVENING_PREFIX + date
+            )
+        ) {
+            return
+        }
+
+
+        // 7 hours already completed
+        if (
+            System.currentTimeMillis() >=
+            morning + SEVEN_HOURS
+        ) {
+            return
+        }
+
+
+        // Android 12+
+        if (Build.VERSION.SDK_INT >= 31) {
+
+            val manager =
+                getSystemService(
+                    ALARM_SERVICE
+                ) as AlarmManager
+
+
+            if (
+                !manager.canScheduleExactAlarms()
+            ) {
+                return
+            }
+        }
+
+
+        scheduleAlarm(
+            morning,
+            false
+        )
+    }
+
+
+    // =========================================================
+    // SCHEDULE ALARM
+    // =========================================================
+
+    private fun scheduleAlarm(
+        morning: Long,
+        askPermission: Boolean = true
+    ) {
+
+        val manager =
+            getSystemService(
+                ALARM_SERVICE
+            ) as AlarmManager
+
+
+        // -----------------------------------------------------
+        // Android 12+
+        // -----------------------------------------------------
+
+        if (
+            Build.VERSION.SDK_INT >= 31 &&
+            !manager.canScheduleExactAlarms()
+        ) {
+
+            if (askPermission) {
+
+                toast(
+                    "Allow 'Alarms & reminders' " +
+                            "for the 7-hour notification"
+                )
+
+
+                startActivity(
+                    Intent(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                    )
+                )
+            }
+
+
+            return
+        }
+
+
+        // -----------------------------------------------------
+        // Intent
+        // -----------------------------------------------------
+
+        val intent =
+            Intent(
+                this,
+                AlarmReceiver::class.java
+            )
+
+
+        // -----------------------------------------------------
+        // PendingIntent
+        // -----------------------------------------------------
+
+        val pendingIntent =
+            PendingIntent.getBroadcast(
+
+                this,
+
+                ALARM_REQUEST_CODE,
+
+                intent,
+
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                        PendingIntent.FLAG_IMMUTABLE
+            )
+
+
+        // -----------------------------------------------------
+        // Exact alarm
+        // -----------------------------------------------------
+
+        manager.setExactAndAllowWhileIdle(
+
+            AlarmManager.RTC_WAKEUP,
+
+            morning + SEVEN_HOURS,
+
+            pendingIntent
+        )
+    }
+
+
+    // =========================================================
+    // CANCEL ALARM
+    // =========================================================
+
+    private fun cancelAlarm() {
+
+        val manager =
+            getSystemService(
+                ALARM_SERVICE
+            ) as AlarmManager
+
+
+        val intent =
+            Intent(
+                this,
+                AlarmReceiver::class.java
+            )
+
+
+        val pendingIntent =
+            PendingIntent.getBroadcast(
+
+                this,
+
+                ALARM_REQUEST_CODE,
+
+                intent,
+
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                        PendingIntent.FLAG_IMMUTABLE
+            )
+
+
+        manager.cancel(
+            pendingIntent
+        )
+    }
+
+
+    // =========================================================
+    // CREATE NOTIFICATION CHANNEL
     // =========================================================
 
     private fun createNotificationChannel() {
@@ -1329,7 +1312,7 @@ class MainActivity : Activity() {
 
                     CHANNEL_ID,
 
-                    "Attendance Timer",
+                    "Attendance",
 
                     NotificationManager
                         .IMPORTANCE_HIGH
@@ -1337,16 +1320,12 @@ class MainActivity : Activity() {
 
 
             channel.description =
-                "7-hour attendance notification"
+                "7-hour attendance reminder"
 
 
-            val manager =
-                getSystemService(
-                    NotificationManager::class.java
-                )
-
-
-            manager.createNotificationChannel(
+            getSystemService(
+                NotificationManager::class.java
+            ).createNotificationChannel(
                 channel
             )
         }
@@ -1354,29 +1333,28 @@ class MainActivity : Activity() {
 
 
     // =========================================================
-    // NOTIFICATION PERMISSION
+    // REQUEST NOTIFICATION PERMISSION
     // =========================================================
 
     private fun requestNotificationPermission() {
 
-        if (Build.VERSION.SDK_INT >= 33) {
+        if (
+            Build.VERSION.SDK_INT >= 33 &&
 
-            if (
-                checkSelfPermission(
+            checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+
+            requestPermissions(
+
+                arrayOf(
                     Manifest.permission.POST_NOTIFICATIONS
-                ) !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
+                ),
 
-                requestPermissions(
-
-                    arrayOf(
-                        Manifest.permission.POST_NOTIFICATIONS
-                    ),
-
-                    10
-                )
-            }
+                10
+            )
         }
     }
 
@@ -1412,9 +1390,13 @@ class MainActivity : Activity() {
 
         AlertDialog.Builder(this)
 
-            .setTitle(title)
+            .setTitle(
+                title
+            )
 
-            .setMessage(message)
+            .setMessage(
+                message
+            )
 
             .setPositiveButton(
                 "OK",
@@ -1440,7 +1422,7 @@ class AlarmReceiver :
     ) {
 
         // -----------------------------------------------------
-        // Notification manager
+        // Notification Manager
         // -----------------------------------------------------
 
         val manager =
@@ -1515,7 +1497,7 @@ class AlarmReceiver :
 
 
         // -----------------------------------------------------
-        // Show
+        // Show notification
         // -----------------------------------------------------
 
         manager.notify(
