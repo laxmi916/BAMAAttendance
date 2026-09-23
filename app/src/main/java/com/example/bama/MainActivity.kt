@@ -331,7 +331,7 @@ class MainActivity : android.app.Activity() {
 
 
         return minutes in
-                (8 * 60 + 15)..(13 * 60 + 45)
+                (8 * 60 + 15)..(14 * 60)
     }
 
 
@@ -355,7 +355,7 @@ class MainActivity : android.app.Activity() {
 
 
         return minutes in
-                (12 * 60 + 15)..(17 * 60 + 45)
+                (12 * 60 + 15)..(18 * 60)
     }
 
 
@@ -384,7 +384,7 @@ class MainActivity : android.app.Activity() {
         if (!morningAllowed()) {
 
             toast(
-                "Morning time must be between 08:15 and 13:45"
+                "Morning time must be between 08:15 and 14:00"
             )
 
             return
@@ -493,7 +493,7 @@ class MainActivity : android.app.Activity() {
         if (!eveningAllowed()) {
 
             toast(
-                "Evening time must be between 12:15 and 17:45"
+                "Evening time must be between 12:15 and 18:00"
             )
 
             return
@@ -503,7 +503,7 @@ class MainActivity : android.app.Activity() {
         // -----------------------------------------------------
         // Already marked
         // -----------------------------------------------------
-
+        /*
         if (prefs.contains(eveningKey)) {
 
             toast(
@@ -511,6 +511,43 @@ class MainActivity : android.app.Activity() {
             )
 
             return
+        } */
+
+        // -----------------------------------------------------
+        // Evening can be marked multiple times.
+        // Always keep the latest Evening time.
+        // -----------------------------------------------------
+
+        val oldEvening =
+            prefs.getLong(
+                eveningKey,
+                0L
+            )
+
+        val newEvening =
+            System.currentTimeMillis()
+
+
+        if (oldEvening == 0L) {
+
+            // First Evening marking
+            prefs.edit()
+                .putLong(
+                    eveningKey,
+                    newEvening
+                )
+                .apply()
+
+        } else if (newEvening > oldEvening) {
+
+            // Later Evening marking
+            // Replace the old time with the new time
+            prefs.edit()
+                .putLong(
+                    eveningKey,
+                    newEvening
+                )
+                .apply()
         }
 
 
