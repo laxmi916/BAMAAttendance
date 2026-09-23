@@ -1,12 +1,13 @@
 package com.example.bama
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,7 +17,6 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.widget.Button
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import java.text.SimpleDateFormat
@@ -415,29 +415,57 @@ class MainActivity : android.app.Activity() {
 
 class AlarmReceiver : BroadcastReceiver() {
 
-    override fun onReceive(context: Context, intent: Intent?) {
-        val manager = context.getSystemService(NotificationManager::class.java)
+    override fun onReceive(
+        context: Context,
+        intent: Intent?
+    ) {
 
-        val openApp = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            200,
-            openApp,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val manager =
+            context.getSystemService(
+                NotificationManager::class.java
+            )
+
+        val openApp =
+            Intent(
+                context,
+                MainActivity::class.java
+            )
+
+        val pendingIntent =
+            PendingIntent.getActivity(
+                context,
+                200,
+                openApp,
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                        PendingIntent.FLAG_IMMUTABLE
+            )
+
+        val notification =
+            Notification.Builder(
+                context,
+                MainActivity.CHANNEL_ID
+            )
+                .setSmallIcon(
+                    android.R.drawable.ic_dialog_info
+                )
+                .setContentTitle(
+                    "7 Hours Completed"
+                )
+                .setContentText(
+                    "Your 7-hour attendance duration is complete."
+                )
+                .setContentIntent(
+                    pendingIntent
+                )
+                .setAutoCancel(true)
+                .setPriority(
+                    Notification.PRIORITY_HIGH
+                )
+                .build()
+
+        manager.notify(
+            MainActivity.NOTIFICATION_ID,
+            notification
         )
-
-        val notification = Notification.Builder(
-            context,
-            MainActivity.CHANNEL_ID
-        )
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("7 Hours Completed")
-            .setContentText("Your 7-hour attendance duration is complete.")
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .setPriority(Notification.PRIORITY_HIGH)
-            .build()
-
-        manager.notify(MainActivity.NOTIFICATION_ID, notification)
     }
 }
