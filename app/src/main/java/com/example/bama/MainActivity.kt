@@ -172,86 +172,233 @@ class MainActivity : android.app.Activity() {
     }
 
     private fun markEvening() {
-        val date = today()
-        val morning = prefs.getLong(MORNING_PREFIX + date, 0L)
 
-        if (!eveningAllowed()) {
-            toast("Evening time must be between 12:15 and 17:45")
+        val date = dateString()
+
+        // ---------------------------------------------------------
+        // Check evening time
+        // ---------------------------------------------------------
+
+        if (!eveningTimeAllowed()) {
+            toast(
+                "Evening time must be between 12:15 and 17:45"
+            )
             return
         }
 
-        if (morning == 0L) {
-            toast("Mark Morning first")
-            return
-        }
+        // ---------------------------------------------------------
+        // Check whether evening is already marked
+        // ---------------------------------------------------------
 
         if (prefs.contains(EVENING_PREFIX + date)) {
             toast("Evening already marked today")
             return
         }
 
+        // ---------------------------------------------------------
+        // Record current evening time
+        // ---------------------------------------------------------
+
         val evening = System.currentTimeMillis()
-        val duration = max(0L, evening - morning)
 
         prefs.edit()
-            .putLong(EVENING_PREFIX + date, evening)
+            .putLong(
+                EVENING_PREFIX + date,
+                evening
+            )
             .apply()
 
-        cancelAlarm()
 
-        val message =
-            "Morning : ${formatTime(morning)}\n" +
-                    "Evening : ${formatTime(evening)}\n" +
-                    "Total : ${formatDuration(duration)}\n\n" +
-                    if (duration >= SEVEN_HOURS) {
-                        "7 hours completed."
-                    } else {
-                        "7 hours not completed.\n" +
-                                "Remaining : ${formatDuration(SEVEN_HOURS - duration)}"
-                    }
+        // ---------------------------------------------------------
+        // Check whether morning exists
+        // ---------------------------------------------------------
 
-        showMessage("Evening Marked", message)
+        val morning =
+            prefs.getLong(
+                MORNING_PREFIX + date,
+                0L
+            )
+
+
+        // ---------------------------------------------------------
+        // CASE 1: Morning was recorded
+        // ---------------------------------------------------------
+
+        if (morning != 0L) {
+
+            cancelAlarm()
+
+            val duration =
+                max(
+                    0L,
+                    evening - morning
+                )
+
+
+            val message =
+                "Morning : ${formatTime(morning)}\n" +
+                        "Evening : ${formatTime(evening)}\n" +
+                        "Total : ${formatDuration(duration)}\n\n" +
+                        if (duration >= SEVEN_HOURS) {
+                            "7 hours completed."
+                        } else {
+                            "7 hours not completed.\n" +
+                                    "Remaining : " +
+                                    formatDuration(
+                                        SEVEN_HOURS - duration
+                                    )
+                        }
+
+
+            showMessage(
+                "Evening Marked",
+                message
+            )
+
+
+        // ---------------------------------------------------------
+        // CASE 2: Morning was NOT recorded
+        // ---------------------------------------------------------
+
+        } else {
+
+            showMessage(
+                "Evening Marked",
+                "Evening : ${formatTime(evening)}\n\n" +
+                        "Morning was not recorded in the app.\n\n" +
+                        "Total hours cannot be calculated " +
+                        "until the morning time is entered."
+            )
+        }
+
+
         updateStatus()
     }
 
     private fun updateStatus() {
-        val date = today()
-        val morning = prefs.getLong(MORNING_PREFIX + date, 0L)
 
-        if (morning == 0L) {
-            statusText.text = "No attendance recorded today."
+        if (!::statusText.isInitialized) {
             return
         }
 
-        val evening = prefs.getLong(EVENING_PREFIX + date, 0L)
 
-        if (evening != 0L) {
-            val duration = max(0L, evening - morning)
+        val date = dateString()
+
+
+        val morning =
+            prefs.getLong(
+                MORNING_PREFIX + date,
+                0L
+            )
+
+
+        val evening =
+            prefs.getLong(
+                EVENING_PREFIX + date,
+                0L
+            )
+
+
+        // ---------------------------------------------------------
+        // No morning AND no evening
+        // ---------------------------------------------------------
+
+        if (morning == 0L && evening == 0L) {
+
             statusText.text =
-                "Morning : ${formatTime(morning)}\n\n" +
-                        "Evening : ${formatTime(evening)}\n\n" +
-                        "Total : ${formatDuration(duration)}\n\n" +
-                        if (duration >= SEVEN_HOURS) {
-                            "7 HOURS COMPLETED"
-                        } else {
-                            "Remaining : ${formatDuration(SEVEN_HOURS - duration)}"
-                        }
+                "No attendance recorded today."
+
             return
         }
 
-        val elapsed = max(0L, System.currentTimeMillis() - morning)
-        val remaining = SEVEN_HOURS - elapsed
+
+        // ---------------------------------------------------------
+        // Evening exists but Morning is missing
+        // ---------------------------------------------------------
+
+        if (morning == 0L && evening != 0L) {
+
+            statusText.text =
+                "Evening : ${formatTime(evening)}\n\n" +
+                        "Morning : Not recorded\n\n" +
+                        "Status : Morning missing\n" +
+                        "Total hours cannot be calculated."
+
+            return
+        }
+
+
+        // ---------------------------------------------------------
+        // Morning exists
+        // ---------------------------------------------------------
+
+        if (morning != 0L && evening == 0L) {
+
+            val now =
+                System.currentTimeMillis()
+
+
+            val elapsed =
+                max(
+                    0L,
+                    now - morning
+                )
+
+
+            val remaining =
+                SEVEN_HOURS - elapsed
+
+
+            if (remaining > 0) {
+
+                statusText.text =
+                    "Morning : ${formatTime(morning)}\n\n" +
+                            "Elapsed : " +
+                            formatDuration(elapsed) +
+                            "\n\n" +
+                            "Remaining : " +
+                            formatDuration(remaining) +
+                            "\n\n" +
+                            "Complete at : " +
+                            formatTime(
+                                morning + SEVEN_HOURS
+                            )
+
+            } else {
+
+                statusText.text =
+                    "Morning : ${formatTime(morning)}\n\n" +
+                            "7 HOURS COMPLETED"
+            }
+
+            return
+        }
+
+
+        // ---------------------------------------------------------
+        // Both Morning and Evening exist
+        // ---------------------------------------------------------
+
+        val duration =
+            max(
+                0L,
+                evening - morning
+            )
+
 
         statusText.text =
             "Morning : ${formatTime(morning)}\n\n" +
-                    if (remaining > 0L) {
-                        "Elapsed : ${formatDuration(elapsed)}\n\n" +
-                                "Remaining : ${formatDuration(remaining)}\n\n" +
-                                "Complete at : ${formatTime(morning + SEVEN_HOURS)}"
-                    } else {
+                    "Evening : ${formatTime(evening)}\n\n" +
+                    "Total : ${formatDuration(duration)}\n\n" +
+                    if (duration >= SEVEN_HOURS) {
                         "7 HOURS COMPLETED"
+                    } else {
+                        "Remaining : " +
+                                formatDuration(
+                                    SEVEN_HOURS - duration
+                                )
                     }
-    }
+    }    
 
     private fun showHistory() {
 
