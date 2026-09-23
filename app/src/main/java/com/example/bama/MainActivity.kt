@@ -171,10 +171,8 @@ class MainActivity : android.app.Activity() {
         findViewById<Button>(
             R.id.morningButton
         ).setOnClickListener {
-
             markMorning()
         }
-
 
         // -----------------------------------------------------
         // Evening
@@ -183,10 +181,8 @@ class MainActivity : android.app.Activity() {
         findViewById<Button>(
             R.id.eveningButton
         ).setOnClickListener {
-
             markEvening()
         }
-
 
         // -----------------------------------------------------
         // History
@@ -195,22 +191,8 @@ class MainActivity : android.app.Activity() {
         findViewById<Button>(
             R.id.historyButton
         ).setOnClickListener {
-
             showHistory()
         }
-
-
-        // -----------------------------------------------------
-        // Clear
-        // -----------------------------------------------------
-
-        findViewById<Button>(
-            R.id.clearButton
-        ).setOnClickListener {
-
-            clearToday()
-        }
-
 
         // -----------------------------------------------------
         // Hamburger menu
@@ -219,10 +201,8 @@ class MainActivity : android.app.Activity() {
         findViewById<Button>(
             R.id.menuButton
         ).setOnClickListener {
-
             showMenu()
         }
-
 
         // -----------------------------------------------------
         // Bottom menu
@@ -231,10 +211,8 @@ class MainActivity : android.app.Activity() {
         findViewById<Button>(
             R.id.menuBottomButton
         ).setOnClickListener {
-
             showMenu()
         }
-
 
         // -----------------------------------------------------
         // Home
@@ -243,7 +221,6 @@ class MainActivity : android.app.Activity() {
         findViewById<Button>(
             R.id.homeButton
         ).setOnClickListener {
-
             updateStatus()
 
             Toast.makeText(
@@ -253,15 +230,16 @@ class MainActivity : android.app.Activity() {
             ).show()
         }
 
-
         // -----------------------------------------------------
         // Notification
         // -----------------------------------------------------
 
         createNotificationChannel()
-
         requestNotificationPermission()
 
+        // -----------------------------------------------------
+        // Current status
+        // -----------------------------------------------------
 
         updateStatus()
     }
