@@ -1,4 +1,3 @@
-// Root build file.
-//
-// Plugin versions are defined in app/build.gradle
-// because this project has only one module.
+plugins {
+    id "com.android.application" version "9.4.0" apply false
+}

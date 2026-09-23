@@ -1,21 +1,21 @@
 plugins {
-    id "com.android.application" version "9.4.0"
-    id "org.jetbrains.kotlin.android" version "2.4.10"
+    id "com.android.application"
 }
 
 android {
     namespace "com.example.bama"
+
     compileSdk 36
 
     defaultConfig {
         applicationId "com.example.bama"
-        minSdk 26
-        targetSdk 36
-        versionCode 1
-        versionName "1.0"
-    }
 
-    kotlinOptions {
-        jvmTarget = "17"
+        minSdk 26
+
+        targetSdk 36
+
+        versionCode 1
+
+        versionName "1.0"
     }
 }
